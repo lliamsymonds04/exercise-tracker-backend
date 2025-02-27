@@ -18,6 +18,7 @@ def create_app():
     new_app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     new_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     new_app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    new_app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
     # new_app.config['PERMANENT_SESSION_LIFETIME'] = 604800  # 7 days
     # new_app.config["REMEMBER_COOKIE_DURATION"] = 604800
 
