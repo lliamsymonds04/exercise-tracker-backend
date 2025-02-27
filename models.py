@@ -10,9 +10,17 @@ class Users(db.Model, UserMixin):
         return f'<User {self.username}>'
 
 
-class Exercises(db.Model):
+class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     exercise_name = db.Column(db.String(100), unique=False, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     notes = db.Column(db.Text, unique=False, nullable=True)
+
+
+class Set(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    exercise_id = db.Column(db.Integer, db.ForeignKey('exercise.id'), nullable=False)
+    set_number = db.Column(db.Integer, nullable=False)
+    reps = db.Column(db.Integer, nullable=False)
+    weight = db.Column(db.Integer, nullable=False)
