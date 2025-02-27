@@ -14,10 +14,23 @@ def loader_user(user_id):
 @auth.route('/register', methods=['POST'])
 def register():
     data = request.get_json()  # Expecting JSON from the React app
-    username = data.get('username')
-    password = data.get('password')
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    username: str = data.get('username').strip()
+    password: str = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password cannot be empty"}), 400
+
+    #check if username exists
+    existing_user = Users.query.filter_by(username=username).first()
+    if existing_user:
+        return jsonify({"error": "Username already taken"}), 409
+
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     new_user = Users(username=username, passwordHash=hashed_password)
+
     db.session.add(new_user)
     db.session.commit()
 
@@ -27,16 +40,20 @@ def register():
 @auth.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({"error": "Username and password are required"}), 400
+
     password = data.get('password')
     username = data.get('username')
     user = Users.query.filter_by(username=username).first()
 
+
     if user and bcrypt.check_password_hash(user.passwordHash, password):
         login_user(user)
-        session.permanent = True  # To enable session permanence
+        session.permanent = True
         return jsonify({"message": "Logged in successfully!", "user": {"username": user.username}})
-    else:
-        return jsonify({"message": "Login failed. Check your credentials."}), 401
+
+    return jsonify({"error": "Login failed. Check your credentials."}), 401
 
 @auth.route('/dashboard', methods=['GET'])
 @login_required
