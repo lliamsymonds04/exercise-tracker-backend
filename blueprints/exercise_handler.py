@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from flask import request, jsonify, Blueprint, session
+from flask import request, jsonify, Blueprint
 from flask_login import login_required, current_user
 from sqlalchemy import distinct
 
 from models import db, Exercise, Set
-from util.binary_insert import binary_insertion
+from util.insertion import insertion, binary_insertion
 
 exercise_handler = Blueprint('exercise_handler', __name__)
 
@@ -91,9 +91,8 @@ def get_data():
             "sets": [],
             "id": exercise.id,
         }
-        binary_insertion(result, v, "created_at")
 
-    print(result)
+        insertion(result, v, "id", False)
 
     id_mapping = {}
     for i in range(len(result)):
@@ -109,7 +108,6 @@ def get_data():
 
         exercise = result[id_mapping[s.exercise_id]]
         binary_insertion(exercise.get("sets"), v, "number")
-
 
     #return the result
     return jsonify(result)
