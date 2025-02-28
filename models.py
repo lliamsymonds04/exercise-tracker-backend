@@ -1,5 +1,6 @@
 from extensions import db
 from flask_login import UserMixin
+from datetime import datetime, timezone
 
 class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -14,8 +15,8 @@ class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     exercise_name = db.Column(db.String(100), unique=False, nullable=False)
-    date = db.Column(db.DateTime, nullable=False)
-    notes = db.Column(db.Text, unique=False, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
+    note = db.Column(db.Text, unique=False, nullable=True)
 
 
 class Set(db.Model):
