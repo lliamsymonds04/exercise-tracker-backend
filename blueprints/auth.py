@@ -1,15 +1,26 @@
-from flask import request, jsonify, Blueprint, session
+from flask import request, jsonify, Blueprint, session, make_response
 from flask_login import login_user, login_required, logout_user, current_user
-from app import bcrypt
+import jwt
+import datetime
 
+# from app import bcrypt
+from extensions import login_manager, bcrypt, SECRET_KEY
 from models import db, Users
-from extensions import login_manager
 
 auth = Blueprint('auth', __name__)
 
 @login_manager.user_loader
 def loader_user(user_id):
     return Users.query.get(user_id)
+
+def make_login_token(username: str):
+    token = jwt.encode(
+        {"user": username, "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=7)},
+        key=SECRET_KEY,
+        algorithm="HS256",
+    )
+
+    return token
 
 @auth.route('/register', methods=['POST'])
 def register():
@@ -34,7 +45,10 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({"message": "Account created successfully!"}), 201
+    response = make_response({"message": "Account created successfully!"})
+    response.set_cookie('token', make_login_token(username), httponly=True, samesite='Strict')
+    return response
+    # return jsonify({"message": "Account created successfully!"}), 201
 
 
 @auth.route('/login', methods=['POST'])
@@ -51,7 +65,10 @@ def login():
     if user and bcrypt.check_password_hash(user.passwordHash, password):
         login_user(user)
         session.permanent = True
-        return jsonify({"message": "Logged in successfully!", "user": {"username": user.username}})
+        # return jsonify({"message": "Logged in successfully!", "user": {"username": user.username}})
+        response = make_response({"message": "Logged in successfully!", "user": {"username": user.username}})
+        response.set_cookie('token', make_login_token(username), httponly=True, samesite='Strict')
+        return response
 
     return jsonify({"error": "Login failed. Check your credentials."}), 401
 
@@ -64,4 +81,11 @@ def dashboard():
 @login_required
 def logout():
     logout_user()
-    return jsonify({"message": "Logged out successfully!"})
+    # return jsonify({"message": "Logged out successfully!"})
+    response = make_response(jsonify({"message": "Logged out"}))
+    response.set_cookie("token", "", expires=0)  # Remove the token
+    return response
+
+@auth.route("/me", methods=["GET"])
+def get_current_user():
+    return jsonify({"user": current_user.id})
