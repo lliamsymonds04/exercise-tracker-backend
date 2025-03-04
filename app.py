@@ -9,7 +9,7 @@ from blueprints.exercise_handler import exercise_handler
 
 def create_app():
     new_app = Flask(__name__)
-    CORS(new_app, supports_credentials=True, origins=["http://localhost:5173"])
+    CORS(new_app, supports_credentials=True, origins=["http://localhost:*", "https://lliams-exercise-tracker.vercel.app"])
 
 
     #setup database
@@ -17,8 +17,6 @@ def create_app():
     new_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     new_app.config['SECRET_KEY'] = SECRET_KEY
     new_app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
-    # new_app.config['PERMANENT_SESSION_LIFETIME'] = 604800  # 7 days
-    # new_app.config["REMEMBER_COOKIE_DURATION"] = 604800
 
     db.init_app(new_app)
     bcrypt.init_app(new_app)
@@ -35,8 +33,8 @@ def create_app():
     return new_app
 
 
-app = create_app()
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app = create_app()
+    app.run(host="0.0.0.0", port=5000, debug=False)
