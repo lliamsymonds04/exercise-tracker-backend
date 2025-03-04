@@ -72,11 +72,6 @@ def login():
 
     return jsonify({"error": "Login failed. Check your credentials."}), 401
 
-@auth.route('/dashboard', methods=['GET'])
-@login_required
-def dashboard():
-    return jsonify({"message": f"Hello, {current_user.username}! Welcome to your dashboard."})
-
 @auth.route('/logout', methods=['POST'])
 @login_required
 def logout():
